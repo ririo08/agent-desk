@@ -1,5 +1,15 @@
 # Release Runbook
 
+## Agent Desk fork
+
+Run **Build Windows and Linux desktop** manually in GitHub Actions to build an unsigned x64
+Windows NSIS installer, a Linux AppImage, and a Linux CLI archive from the selected ref.
+The Windows installer embeds that run's Linux CLI for WSL. Downloads are stored as Actions
+artifacts for seven days. The fork also runs **Sync upstream stable release** to open draft
+sync PRs. The workflows described below are upstream references.
+
+## Upstream T3 Code
+
 Unified release workflow: `.github/workflows/release.yml`. Beta is a product label, not a release channel—channels remain `stable` and `nightly` (plus `preview` for maintainer test builds).
 
 ## Channels and triggers

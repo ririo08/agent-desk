@@ -1,0 +1,133 @@
+name: Build Windows and Linux desktop
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  T3CODE_TELEMETRY_ENABLED: "false"
+  T3CODE_OTEL_SDK_DISABLED: "true"
+  OTEL_SDK_DISABLED: "true"
+
+jobs:
+  linux:
+    name: Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libatomic1 libsecret-1-dev pkg-config imagemagick libgtk-3-0t64 libnss3 libasound2t64 libgbm1 patchelf
+
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1.15.0
+        with:
+          node-version-file: package.json
+          cache: false
+          run-install: false
+
+      - name: Install workspace dependencies
+        run: vp install --frozen-lockfile --filter=t3... --filter=@t3tools/web... --filter=@t3tools/desktop... --filter=@t3tools/scripts...
+
+      - name: Set the preview version
+        id: version
+        run: |
+          base=$(node -p "require('./apps/server/package.json').version.split('-')[0]")
+          version="$base-preview.$(date -u +%Y%m%d).$GITHUB_RUN_NUMBER"
+          node scripts/update-release-package-versions.ts "$version"
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build the Linux AppImage
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.value }}
+        run: node scripts/build-desktop-artifact.ts --platform linux --target AppImage --arch x64 --build-version "$BUILD_VERSION" --verbose
+
+      - name: Build and smoke-test the Linux CLI for WSL
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          cargo build --locked --release --manifest-path native/resource-monitor/Cargo.toml --target x86_64-unknown-linux-gnu
+          mkdir -p cli-resource-monitor/linux-x64
+          cp native/resource-monitor/target/x86_64-unknown-linux-gnu/release/t3-resource-monitor cli-resource-monitor/linux-x64/
+          node apps/server/scripts/cli.ts build-exe --verbose
+          node scripts/build-cli-archive.ts --platform linux --arch x64 --version "$BUILD_VERSION" --resource-monitor-dir cli-resource-monitor --output-dir release-cli
+          node scripts/smoke-cli-archive.ts --archive "release-cli/t3-$BUILD_VERSION-linux-x64.tar.gz" --expect-version "$BUILD_VERSION"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-x64-appimage
+          path: release/*.AppImage
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-x64-cli
+          path: release-cli/*.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  windows:
+    name: Windows x64
+    needs: linux
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - uses: voidzero-dev/setup-vp@250f29ce396baf5e8f24498e17c0dfdebabc26eb # v1.15.0
+        with:
+          node-version-file: package.json
+          cache: false
+          run-install: false
+
+      - name: Install workspace dependencies
+        run: vp install --frozen-lockfile --filter=t3... --filter=@t3tools/web... --filter=@t3tools/desktop... --filter=@t3tools/scripts...
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: linux-x64-cli
+          path: wsl-runtime
+
+      - name: Build the Windows NSIS installer
+        shell: pwsh
+        env:
+          BUILD_VERSION: ${{ needs.linux.outputs.version }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          node scripts/update-release-package-versions.ts $env:BUILD_VERSION
+          rustup target add x86_64-pc-windows-msvc
+          $archive = "wsl-runtime/t3-${env:BUILD_VERSION}-linux-x64.tar.gz"
+          node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version $env:BUILD_VERSION --wsl-runtime $archive --verbose
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-x64-nsis
+          path: release/*.exe
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
