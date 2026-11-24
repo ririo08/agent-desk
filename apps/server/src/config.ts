@@ -299,3 +299,12 @@ export const resolveStaticDir = Effect.fn(function* () {
   }
   return undefined;
 });
+
+export function withoutExternalTelemetry(config: ServerConfig["Service"]): ServerConfig["Service"] {
+  return {
+    ...config,
+    otlpTracesUrl: undefined,
+    otlpMetricsUrl: undefined,
+    otlpLogsUrl: undefined,
+  };
+}

@@ -8886,8 +8886,6 @@
   "e4e91d155cb6a9b4": "Barra lateral simple (agrupar por proyecto)",
   "f079556d67367fe7": "Muestra los hilos de las carpetas en dos líneas: el título y, debajo, la rama, la pull request y el agente.",
   "ac1e5c94d1ad3c6a": "Filas de carpeta en dos líneas",
-  "9ae293971d93c819": "Comparte un hilo con un invitado que lo ve en directo en un navegador y envía mensajes que tú apruebas. Inicia sesión en T3 Connect para usar enlaces de invitado.",
-  "0aa5406ac4d7f7c7": "Enlaces de invitado",
   "f0e853acd2006d53": "Entornos vinculados",
   "ef10c2dff987f3ea": "Ejecuta flujos de trabajo de varios pasos a partir de archivos en la carpeta workflows del directorio T3 de este servidor. Ábrelos desde la paleta de comandos. Mientras está desactivado, no se ejecuta nada de esa carpeta; las ejecuciones esperan hasta que se vuelva a activar.",
   "2dadb2359422121c": "Flujos de trabajo",
@@ -8899,16 +8897,6 @@
   "9c2f647882522302": "Las máquinas seleccionadas usan distintos modos de comentarios de agentes.",
   "31bbf7bf8c0a5279": "Comentarios de agentes",
   "d52b3d6bf9f2a013": "Mixto",
-  "ec7623deed751c05": [
-    "Comparte un hilo con un invitado que lo ve en directo en un navegador y envía mensajes que tú apruebas. Requiere T3 Connect: inicia sesión y vincula esta máquina en",
-    " ",
-    {
-      "t": "Link",
-      "i": 1,
-      "c": "Compartir y acceso"
-    },
-    ". Al desactivarlo se detienen todos los enlaces de invitado."
-  ],
   "bff0033ea41eb38e": [
     "Permite que los agentes de aquí trabajen en tus otras máquinas, y los de ellas aquí. Actívalo en cada máquina y luego vincúlalas en",
     " ",
@@ -11832,7 +11820,6 @@
   "8f71bc7c325e23e3": "ocultar llamadas a herramientas comandos ediciones búsquedas registro de trabajo actividad chat silencioso zen solo respuestas finales",
   "5a3af411a0d5354c": "accesibilidad a11y lector de pantalla nvda jaws voiceover orca narrador voz anunciar leer en voz alta mensajes actividad pasos",
   "d443390c4d2dcfd4": "accesibilidad a11y lector de pantalla nvda jaws voiceover orca narrador título de ventana título de pestaña alt tab barra de tareas estado del hilo orden en curso aprobación",
-  "6826fa9579c22035": "beta compartir invitado invitar enlace compañero ver t3 connect túnel",
   "f10c06cba0cdf7fe": "beta vincular otra máquina vps agentes pares trabajar allí delegar",
   "bc0b409d89ce086e": "beta flujo de trabajo workflow ejecuciones duraderas automatización pasos programación webhook carpeta",
   "4a21cf825a2045b0": "beta tab autocompletar predecir siguiente mensaje claude codex texto fantasma",
@@ -11904,7 +11891,6 @@
   "df9fa3a9cb004b9b": "bienvenida configuración primer inicio primeros pasos agentes importar proyectos",
   "3188bc3b3c4508bc": "Política de privacidad",
   "901a823214edc8c4": "telemetría analítica datos de uso seguimiento legal desactivar",
-  "82136480255a5106": "OTel OTLP telemetría exportar endpoints registros trazas métricas Grafana",
   "659d081051faf7ff": "registros trazas procesos historial de recursos fallos spans cpu memoria",
   "5eaeacfa9f82051a": "informe error problema t3 equipo enviar comentarios agentes herramientas automático cuando lo pida",
   "f537f91e1ee41d47": "atajos de teclado teclas rápidas comandos combinaciones json",

@@ -80,3 +80,7 @@ const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(RelayDeliveryProof, make);
+
+export const layerDisabled = Layer.succeed(RelayDeliveryProof, {
+  verify: Effect.fn("RelayDeliveryProof.disabledVerify")(() => Effect.succeedNone),
+});

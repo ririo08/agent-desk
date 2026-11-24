@@ -1,31 +1,14 @@
-<p align="center">
-  <a href="https://t3.codes">
-    <img src="./assets/prod/t3-black-web-icon-192x192.png" width="80" height="80" alt="T3 Code logo" />
-  </a>
-</p>
+# Agent Desk
 
-<h1 align="center">T3 Code</h1>
+Agent Desk is an unofficial, MIT-licensed fork of T3 Code for running coding agents on your own
+machine. It is unaffiliated with T3 Tools. The fork keeps project history, local diagnostics,
+terminals, Git, and direct LAN or Tailscale access.
 
-<p align="center">The open-source control plane for coding agents.</p>
+[Windows preview releases](https://github.com/ririo08/agent-desk/releases) ·
+[Privacy and diagnostics](./docs/user/telemetry.md) ·
+[Build workflow](./docs/operations/03_release.md#agent-desk-fork)
 
-<p align="center">
-  <a href="https://t3.codes/download"><strong>Download</strong></a> ·
-  <a href="https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824">iOS</a> ·
-  <a href="https://play.google.com/store/apps/details?id=com.t3tools.t3code">Android</a> ·
-  <a href="https://app.t3.codes">Web</a> ·
-  <a href="./docs/README.md">Docs</a> ·
-  <a href="https://discord.gg/jn4EGJjrvv">Discord</a>
-</p>
-
-<p align="center">
-  <a href="https://t3.codes">
-    <img src="./.github/readme/hero.webp" width="100%" alt="T3 Code on desktop with a finished Claude thread, next to the phone app asking to approve a command from Codex" />
-  </a>
-</p>
-
-T3 Code runs the coding agents on your machine and gives them one fast interface. Start a thread at your desk, then approve the next step from your phone.
-
-It works with Claude Code, Codex, Cursor, OpenCode, Grok Build, Antigravity, Kiro, Pi, Muse Code, fx, and any [ACP](./docs/user/providers-acp.md) agent. If an agent is set up on your computer, T3 Code can control it.
+The documentation below describes the upstream project.
 
 ## What you get
 

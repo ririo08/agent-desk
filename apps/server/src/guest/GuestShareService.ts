@@ -797,3 +797,21 @@ const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(GuestShareService, make);
+
+const disabledAccess = Effect.fn("GuestShareService.disabledAccess")(() => Effect.fail(inactive));
+
+export const layerDisabled = Layer.succeed(GuestShareService, {
+  create: Effect.fn("GuestShareService.disabledCreate")(() =>
+    Effect.fail(new GuestShareCreateError({ reason: "disabled" })),
+  ),
+  redeem: disabledAccess,
+  check: disabledAccess,
+  submit: disabledAccess,
+  stream: disabledAccess,
+  render: disabledAccess,
+  item: disabledAccess,
+  history: disabledAccess,
+  commandOutput: disabledAccess,
+  attachment: disabledAccess,
+  media: disabledAccess,
+});

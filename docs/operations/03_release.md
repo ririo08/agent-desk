@@ -6,7 +6,9 @@ Run **Build Windows and Linux desktop** manually in GitHub Actions to build an u
 Windows NSIS installer, a Linux AppImage, and a Linux CLI archive from the selected ref.
 The Windows installer embeds that run's Linux CLI for WSL. Downloads are stored as Actions
 artifacts for seven days. The fork also runs **Sync upstream stable release** to open draft
-sync PRs. The workflows described below are upstream references.
+sync PRs. To publish the Windows installer and its SHA-256 checksum as a GitHub prerelease,
+run the build on `main` and select **Publish the Windows installer as an Agent Desk prerelease**.
+The workflows described below are upstream references.
 
 ## Upstream T3 Code
 

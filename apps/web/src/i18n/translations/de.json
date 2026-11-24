@@ -8888,8 +8888,6 @@
   "e4e91d155cb6a9b4": "Schlichte Seitenleiste (nach Projekt gruppieren)",
   "f079556d67367fe7": "Ordner-Threads zweizeilig anzeigen: den Titel, darunter Branch, Pull Request und Agent.",
   "ac1e5c94d1ad3c6a": "Zweizeilige Ordnerzeilen",
-  "9ae293971d93c819": "Teile einen Thread mit einem Gast, der ihn live im Browser verfolgt und Nachrichten sendet, die du genehmigst. Melde dich bei T3 Connect an, um Gastlinks zu nutzen.",
-  "0aa5406ac4d7f7c7": "Gastlinks",
   "f0e853acd2006d53": "Verknüpfte Umgebungen",
   "ef10c2dff987f3ea": "Führe mehrstufige Workflows aus Dateien im Ordner workflows des T3-Home dieses Servers aus. Öffne sie über die Befehlspalette. Solange es aus ist, läuft nichts aus diesem Ordner; Läufe warten, bis es wieder an ist.",
   "2dadb2359422121c": "Workflows",
@@ -8901,16 +8899,6 @@
   "9c2f647882522302": "Die ausgewählten Rechner verwenden unterschiedliche Modi für Agenten-Feedback.",
   "31bbf7bf8c0a5279": "Agenten-Feedback",
   "d52b3d6bf9f2a013": "Gemischt",
-  "ec7623deed751c05": [
-    "Teile einen Thread mit einem Gast, der ihn live im Browser verfolgt und Nachrichten sendet, die du genehmigst. Erfordert T3 Connect: Melde dich an und verknüpfe diesen Rechner unter",
-    " ",
-    {
-      "t": "Link",
-      "i": 1,
-      "c": "Freigabe & Zugriff"
-    },
-    ". Beim Ausschalten werden alle Gastlinks beendet."
-  ],
   "bff0033ea41eb38e": [
     "Lass Agenten hier auf deinen anderen Rechnern arbeiten und deren Agenten hier. Schalte es für jeden Rechner ein und verknüpfe sie dann unter",
     " ",
@@ -11839,7 +11827,6 @@
   "8f71bc7c325e23e3": "tool-aufrufe ausblenden befehle bearbeitungen suchen arbeitsprotokoll aktivität ruhiger chat zen nur endgültige antworten",
   "5a3af411a0d5354c": "barrierefreiheit a11y screenreader nvda jaws voiceover orca sprachausgabe ansagen vorlesen nachrichten aktivität schritte",
   "d443390c4d2dcfd4": "barrierefreiheit a11y screenreader nvda jaws voiceover orca sprachausgabe fenstertitel tab-titel alt tab taskleiste thread status reihenfolge arbeitet genehmigung",
-  "6826fa9579c22035": "beta teilen gast einladen link teammitglied zuschauen t3 connect tunnel",
   "f10c06cba0cdf7fe": "beta anderen rechner verknüpfen vps peer agenten dort arbeiten delegieren",
   "bc0b409d89ce086e": "beta workflow dauerhafte läufe automatisierung schritte zeitplan webhook ordner",
   "4a21cf825a2045b0": "beta tab autovervollständigung nächste nachricht vorhersagen claude codex ghost text",
@@ -11911,7 +11898,6 @@
   "df9fa3a9cb004b9b": "onboarding einrichtung erster start erste schritte agenten import projekte",
   "3188bc3b3c4508bc": "Datenschutzerklärung",
   "901a823214edc8c4": "telemetrie analyse nutzungsdaten tracking rechtliches deaktivieren",
-  "82136480255a5106": "OTel OTLP telemetrie export endpunkte logs traces metriken Grafana",
   "659d081051faf7ff": "logs traces prozesse ressourcenverlauf fehler spans cpu speicher",
   "5eaeacfa9f82051a": "bericht fehler problem t3 team senden feedback agenten tools automatisch wenn ich darum bitte",
   "f537f91e1ee41d47": "tastenkürzel hotkeys befehle tastenzuweisungen json",

@@ -63,9 +63,6 @@ import { MCP_TOOL_EXPOSURE_HEADER } from "@t3tools/provider-core/server/mcpSessi
 import * as OrchestratorMcpService from "./OrchestratorMcpService.ts";
 import { PreviewControlsToolkit } from "./toolkits/previewControls/tools.ts";
 import * as PreviewControlsHandlers from "./toolkits/previewControls/handlers.ts";
-import * as FeedbackHandlers from "./toolkits/feedback/handlers.ts";
-import { FeedbackToolkit } from "./toolkits/feedback/tools.ts";
-import * as Feedback from "../feedback/FeedbackService.ts";
 import { EnvironmentToolkit } from "./toolkits/environment/tools.ts";
 import * as EnvironmentHandlers from "./toolkits/environment/handlers.ts";
 import { ThemeToolkit } from "./toolkits/theme/tools.ts";
@@ -293,7 +290,7 @@ const makeMcpAuthMiddleware = Effect.gen(function* () {
   const settingsFlags = serverSettings.getSettings.pipe(
     Effect.map((settings) => ({
       linkedEnvironments: settings.linkedEnvironmentsEnabled,
-      agentFeedback: settings.agentFeedback.mode,
+      agentFeedback: "off" as const,
       workflows: settings.workflowsEnabled,
     })),
     Effect.orElseSucceed(() => ({
@@ -1440,16 +1437,6 @@ const layerThemeToolkit = toolkitRegistration(ThemeToolkit, ThemeHandlers.layer)
 export const layerProjectRegistration = toolkitRegistration(ProjectToolkit, ProjectHandlers.layer);
 
 // Reports may name any tool this server advertises, read when a report arrives.
-const layerFeedbackToolkit = toolkitRegistration(FeedbackToolkit, FeedbackHandlers.layer).pipe(
-  Layer.provide(
-    Layer.unwrap(
-      Effect.map(McpServer.McpServer, (server) =>
-        Feedback.layer(() => server.tools.map(({ tool }) => tool.name)),
-      ),
-    ),
-  ),
-);
-
 export const layerAttachmentToolkit = toolkitRegistration(
   AttachmentToolkit,
   AttachmentHandlers.layer,
@@ -1514,7 +1501,6 @@ export const layerTools = Layer.mergeAll(
   layerWorkflowToolkit,
   layerAttachmentToolkit,
   layerProjectRegistration,
-  layerFeedbackToolkit,
   layerEnvironmentToolkit,
   layerThemeToolkit,
   layerPreviewControlsRegistration,

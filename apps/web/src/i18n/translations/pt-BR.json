@@ -8886,8 +8886,6 @@
   "e4e91d155cb6a9b4": "Barra lateral sem graça (agrupar por projeto)",
   "f079556d67367fe7": "Mostra as threads das pastas em duas linhas: o título e, abaixo, o branch, o pull request e o agente.",
   "ac1e5c94d1ad3c6a": "Linhas de pasta em duas linhas",
-  "9ae293971d93c819": "Compartilhe uma thread com um convidado que a acompanha ao vivo no navegador e envia mensagens que você aprova. Entre no T3 Connect para usar links de convidado.",
-  "0aa5406ac4d7f7c7": "Links de convidado",
   "f0e853acd2006d53": "Ambientes vinculados",
   "ef10c2dff987f3ea": "Execute workflows de várias etapas a partir de arquivos na pasta workflows da pasta T3 deste servidor. Abra-os pela paleta de comandos. Enquanto estiver desativado, nada dessa pasta é executado; as execuções aguardam até que seja ativado novamente.",
   "2dadb2359422121c": "Workflows",
@@ -8899,16 +8897,6 @@
   "9c2f647882522302": "As máquinas selecionadas usam modos diferentes de feedback dos agentes.",
   "31bbf7bf8c0a5279": "Feedback dos agentes",
   "d52b3d6bf9f2a013": "Misto",
-  "ec7623deed751c05": [
-    "Compartilhe uma thread com um convidado que a acompanha ao vivo no navegador e envia mensagens que você aprova. Requer T3 Connect: entre e vincule esta máquina em",
-    " ",
-    {
-      "t": "Link",
-      "i": 1,
-      "c": "Compartilhamento"
-    },
-    ". Desativar encerra todos os links de convidado."
-  ],
   "bff0033ea41eb38e": [
     "Permite que os agentes daqui trabalhem nas suas outras máquinas, e os delas aqui. Ative em cada máquina e depois vincule-as em",
     " ",
@@ -11837,7 +11825,6 @@
   "8f71bc7c325e23e3": "ocultar chamadas de ferramentas comandos edições pesquisas registro de trabalho atividade chat silencioso zen só respostas finais",
   "5a3af411a0d5354c": "acessibilidade a11y leitor de tela nvda jaws voiceover orca narrador fala anunciar ler em voz alta mensagens atividade etapas",
   "d443390c4d2dcfd4": "acessibilidade a11y leitor de tela nvda jaws voiceover orca narrador título da janela título da aba alt tab barra de tarefas status da thread ordem trabalhando aprovação",
-  "6826fa9579c22035": "beta compartilhar convidado convite link colega acompanhar t3 connect túnel",
   "f10c06cba0cdf7fe": "beta vincular outra máquina vps par agentes trabalham lá delegar",
   "bc0b409d89ce086e": "beta workflow execuções duráveis automação etapas agendamento webhook pasta",
   "4a21cf825a2045b0": "beta tab autocompletar prever próxima mensagem claude codex texto fantasma",
@@ -11909,7 +11896,6 @@
   "df9fa3a9cb004b9b": "integração configuração primeira execução primeiros passos agentes importar projetos",
   "3188bc3b3c4508bc": "Política de privacidade",
   "901a823214edc8c4": "telemetria analytics dados de uso rastreamento legal desativar",
-  "82136480255a5106": "OTel OTLP telemetria exportar endpoints logs traces métricas Grafana",
   "659d081051faf7ff": "logs traces processos histórico de recursos falhas spans cpu memória",
   "5eaeacfa9f82051a": "relatório bug problema t3 equipe enviar feedback agentes ferramentas automático quando eu pedir",
   "f537f91e1ee41d47": "atalhos de teclado teclas de atalho comandos bindings json",

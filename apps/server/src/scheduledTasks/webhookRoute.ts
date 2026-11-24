@@ -13,6 +13,7 @@ import * as HttpApiBuilder from "effect/http-api/HttpApiBuilder";
 
 import * as Metrics from "../observability/Metrics.ts";
 import * as ManagedPolicy from "../policy/ManagedPolicy.ts";
+import { RELAY_HOOK_DELIVERY_HEADER } from "@t3tools/shared/relayJwt";
 import * as Workflows from "../workflows/Workflows.ts";
 import * as RelayDeliveryProof from "./RelayDeliveryProof.ts";
 import * as ScheduledTaskService from "./ScheduledTaskService.ts";
@@ -59,6 +60,13 @@ export const layer = HttpApiBuilder.group(
         return json(405, { error: "method_not_allowed" }, "method_not_allowed", {
           allow: "GET, POST, PUT, PATCH",
         });
+      }
+      if (
+        managedPolicy.connectDisabled === true &&
+        (request.headers[RELAY_HOOK_DELIVERY_HEADER] !== undefined ||
+          request.headers["x-t3-relay-delivery-id"] !== undefined)
+      ) {
+        return json(403, { error: "relay_disabled" }, "relay_disabled");
       }
       const contentLength = Number(request.headers["content-length"] ?? "0");
       if (!Number.isFinite(contentLength) || contentLength > WEBHOOK_MAX_BODY_BYTES) {

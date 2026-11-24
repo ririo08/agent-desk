@@ -369,3 +369,11 @@ const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(FeedbackStore, make);
+
+export const layerDisabled = Layer.succeed(FeedbackStore, {
+  store: Effect.fn("FeedbackStore.disabledStore")(() => Effect.fail(new FeedbackOffError({}))),
+  showCard: Effect.fn("FeedbackStore.disabledShowCard")(() => Effect.void),
+  answer: Effect.fn("FeedbackStore.disabledAnswer")(() =>
+    Effect.fail(new AgentFeedbackRequestError({ reason: "feedback_off" })),
+  ),
+});

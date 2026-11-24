@@ -499,3 +499,17 @@ const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(ConnectReachability, make);
+
+export const layerDisabled = Layer.succeed(ConnectReachability, {
+  latest: Effect.succeedNone,
+  check: DateTime.now.pipe(
+    Effect.map((now): EnvironmentConnectReachability => ({
+      status: "unreachable",
+      checkedAt: DateTime.formatIso(now),
+      cause: "not_linked",
+      reason: "T3 Connect is disabled in this build.",
+      hint: null,
+      fix: "Pair directly over LAN or Tailscale.",
+    })),
+  ),
+});

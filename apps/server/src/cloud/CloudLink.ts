@@ -1738,3 +1738,46 @@ const make = Effect.gen(function* () {
 });
 
 export const layer = Layer.effect(CloudLink, make);
+
+const disabled = Effect.fn("CloudLink.disabled")(() =>
+  Effect.fail(
+    new ManagedLimits.ManagedPolicyRefusedError({
+      organization: "Agent Desk",
+      action: "T3 Connect",
+    }),
+  ),
+);
+const disabledTunnel = Effect.fn("CloudLink.disabledTunnel")(() => Effect.succeed(false));
+
+export const layerDisabled = Layer.succeed(CloudLink, {
+  linkProof: disabled,
+  applyRelayConfig: disabled,
+  linkState: Effect.fn("CloudLink.disabledLinkState")(() =>
+    Effect.succeed({
+      linked: false,
+      cloudUserId: null,
+      relayUrl: null,
+      relayIssuer: null,
+      managedTunnelActive: false,
+      publishAgentActivity: false,
+      holdWebhooksWhileOffline: false,
+      linkableHere: false,
+    }),
+  ),
+  unlink: Effect.fn("CloudLink.disabledUnlink")(() =>
+    Effect.succeed({ ok: true, endpointRuntimeStatus: { status: "disabled" } }),
+  ),
+  updatePreferences: disabled,
+  updateLiveActivityPreference: disabled,
+  answerHealthRequest: disabled,
+  mintCredential: disabled,
+  reconcileDesiredLinkIfStillDesired: Effect.fn("CloudLink.disabledReconcile")(() =>
+    Effect.succeed(null),
+  ),
+  registerManagedTunnelRecovery: Effect.fn("CloudLink.disabledRecovery")(() =>
+    Effect.succeed({ status: "not_linked" as const }),
+  ),
+  recoverManagedTunnel: disabledTunnel,
+  startManagedTunnelIfOriginConfirmed: disabledTunnel,
+  releaseManagedTunnelOnShutdown: disabledTunnel,
+});

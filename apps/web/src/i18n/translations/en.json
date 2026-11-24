@@ -8896,8 +8896,6 @@
   "e4e91d155cb6a9b4": "Boring sidebar (group by project)",
   "f079556d67367fe7": "Show folder threads on two lines: the title, then the branch, pull request, and agent.",
   "ac1e5c94d1ad3c6a": "Two-line folder rows",
-  "9ae293971d93c819": "Share a thread with a guest who watches it live in a browser and sends messages you approve. Sign in to T3 Connect to use guest links.",
-  "0aa5406ac4d7f7c7": "Guest links",
   "f0e853acd2006d53": "Linked environments",
   "ef10c2dff987f3ea": "Run multi-step workflows from files in the workflows folder of this server's T3 home. Open them from the command palette. While off, nothing in that folder runs; runs wait until it is on again.",
   "2dadb2359422121c": "Workflows",
@@ -8909,16 +8907,6 @@
   "9c2f647882522302": "The selected machines use different agent feedback modes.",
   "31bbf7bf8c0a5279": "Agent feedback",
   "d52b3d6bf9f2a013": "Mixed",
-  "ec7623deed751c05": [
-    "Share a thread with a guest who watches it live in a browser and sends messages you approve. Needs T3 Connect: sign in and link this machine in",
-    " ",
-    {
-      "t": "Link",
-      "i": 1,
-      "c": "Sharing & access"
-    },
-    ". Turning it off stops every guest link."
-  ],
   "bff0033ea41eb38e": [
     "Let agents here work on your other machines, and theirs here. Turn it on for each machine, then link them in",
     " ",
@@ -11847,7 +11835,6 @@
   "8f71bc7c325e23e3": "hide tool calls commands edits searches work log activity quiet chat zen final answers only",
   "5a3af411a0d5354c": "accessibility a11y screen reader nvda jaws voiceover orca narrator speech announce read aloud messages activity steps",
   "d443390c4d2dcfd4": "accessibility a11y screen reader nvda jaws voiceover orca narrator window title tab title alt tab taskbar thread status order working approval",
-  "6826fa9579c22035": "beta share guest invite link teammate watch t3 connect tunnel",
   "f10c06cba0cdf7fe": "beta link another machine vps peer agents work there delegate",
   "bc0b409d89ce086e": "beta workflow durable runs automation steps schedule webhook folder",
   "4a21cf825a2045b0": "beta tab autocomplete predict next message claude codex ghost text",
@@ -11919,7 +11906,6 @@
   "df9fa3a9cb004b9b": "onboarding setup first run getting started agents import projects",
   "3188bc3b3c4508bc": "Privacy policy",
   "901a823214edc8c4": "telemetry analytics usage data tracking legal opt out",
-  "82136480255a5106": "OTel OTLP telemetry export endpoints logs traces metrics Grafana",
   "659d081051faf7ff": "logs traces processes resource history failures spans cpu memory",
   "5eaeacfa9f82051a": "report bug problem t3 team send feedback agents tools automatic when i ask",
   "f537f91e1ee41d47": "keyboard shortcuts hotkeys commands bindings json",
