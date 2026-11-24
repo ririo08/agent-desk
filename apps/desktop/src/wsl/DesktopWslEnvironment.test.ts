@@ -149,9 +149,9 @@ describe.skipIf(posixShellRunner === null)("WSL runtime install script (executed
       archivePath,
       archiveSha,
       runtimeId,
-      runtimeParent: `${work}/home/.t3/wsl-runtime`,
-      runtimeRoot: `${work}/home/.t3/wsl-runtime/${runtimeId}`,
-      serverEntry: `${work}/home/.t3/wsl-runtime/${runtimeId}/t3`,
+      runtimeParent: `${work}/home/.agent-desk/wsl-runtime`,
+      runtimeRoot: `${work}/home/.agent-desk/wsl-runtime/${runtimeId}`,
+      serverEntry: `${work}/home/.agent-desk/wsl-runtime/${runtimeId}/t3`,
       installScript,
       install: (archive?: string, sha?: string, t3Home?: string | null) =>
         runShell(installScript(archive, sha, t3Home)),
@@ -200,22 +200,25 @@ describe.skipIf(posixShellRunner === null)("WSL runtime install script (executed
     expect(provider.stdout).toBe("linux-node-provider\n");
   });
 
-  it("stages the runtime under the login shell's T3CODE_HOME and reports it to the launcher", () => {
+  it("keeps the WSL runtime outside the upstream T3CODE_HOME", () => {
     const fixture = createFixture();
-    const t3Home = `${fixture.work}/home/.config/t3 home`;
-    const install = fixture.install(undefined, undefined, t3Home);
-    expect(install.status, install.stderr).toBe(0);
-    expect(parseWslRuntimeRoot(install.stdout)).toBe(`${t3Home}/wsl-runtime/${fixture.runtimeId}`);
-    expect(runShell(`test ! -e ${sh(`${fixture.work}/home/.t3`)}`).status).toBe(0);
-
+    const distroHome = `${fixture.work}/home`;
+    const upstreamHome = `${distroHome}/.config/t3 home`;
     const probe = runShell(
       [
-        `bash() { ( export T3CODE_HOME=${sh(t3Home)}; eval "$2" ); }`,
+        `export HOME=${sh(distroHome)} T3CODE_HOME=${sh(upstreamHome)}`,
+        'bash() { ( eval "$2" ); }',
         buildWslRuntimeProbeScript(),
       ].join("\n"),
     );
     expect(probe.status, probe.stderr).toBe(0);
-    expect(parseT3Home(probe.stdout)).toBe(t3Home);
+    const t3Home = parseT3Home(probe.stdout);
+    expect(t3Home).toBe(`${distroHome}/.agent-desk`);
+
+    const install = fixture.install(undefined, undefined, t3Home);
+    expect(install.status, install.stderr).toBe(0);
+    expect(parseWslRuntimeRoot(install.stdout)).toBe(fixture.runtimeRoot);
+    expect(runShell(`test ! -e ${sh(upstreamHome)}`).status).toBe(0);
   });
 
   it("keeps the inherited PATH when bash is unavailable", () => {
@@ -505,7 +508,7 @@ describe.skipIf(posixShellRunner === null)("WSL runtime install script (executed
         "set -eu",
         "work=$(mktemp -d)",
         'home="$work/home"',
-        'runtime_parent="$home/.t3/wsl-runtime"',
+        'runtime_parent="$home/.agent-desk/wsl-runtime"',
         'mkdir -p "$runtime_parent"',
         'make_ready() { mkdir -p "$runtime_parent/$1"; printf ready > "$runtime_parent/$1/.t3code-wsl-runtime-ready"; }',
         "make_ready sha256-current",
