@@ -1,0 +1,131 @@
+name: Sync upstream stable release
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream-stable
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'ririo08/agent-desk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: false
+
+      - name: Check the latest stable release and prepare a draft PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          upstream=pingdotgg/t3code
+          tag=$(gh api "repos/$upstream/releases/latest" \
+            --jq 'select(.draft == false and .prerelease == false) | .tag_name')
+          if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The upstream latest release does not have a stable vX.Y.Z tag."
+            exit 1
+          fi
+
+          git fetch --no-tags "https://github.com/$upstream.git" "refs/tags/$tag"
+          release_commit=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
+          base=$(git rev-parse HEAD)
+          printf '### Upstream stable release %s\n\nCommit `%s`\n\n' \
+            "$tag" "$release_commit" >> "$GITHUB_STEP_SUMMARY"
+          if git merge-base --is-ancestor "$release_commit" "$base"; then
+            echo "$tag is already included in main."
+            echo 'Already included in `main`. No sync needed.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          branch="upstream/stable-$tag"
+          branch_ref="refs/heads/$branch"
+          existing_pr=$(gh api --method GET "repos/$GITHUB_REPOSITORY/pulls" \
+            -f state=all -f "head=$GITHUB_REPOSITORY_OWNER:$branch" -f base=main \
+            --jq '.[0].html_url // empty')
+          if [[ -n $existing_pr ]]; then
+            echo "A pull request already exists: $existing_pr"
+            printf 'Existing pull request: %s\n' "$existing_pr" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          protected_paths=(
+            .github/workflows
+            .github/actions
+            .github/scripts
+            .vercelignore
+            apps/marketing/vercel.ts
+            apps/web/vercel.ts
+            apps/mobile/eas.json
+            ':(glob)infra/**/alchemy.run.ts'
+            packaging/aur
+          )
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Keep moves across protected paths visible as additions and deletions.
+          if ! git merge --no-ff --no-commit -X no-renames "$release_commit"; then
+            git rev-parse --verify --quiet MERGE_HEAD >/dev/null || exit 1
+          fi
+
+          for path in "${protected_paths[@]}"; do
+            if [[ -n $(git ls-files --with-tree="$base" -- "$path") ]]; then
+              git restore --source="$base" --staged --worktree -- "$path"
+            fi
+          done
+          conflicts=$(git diff --name-only --diff-filter=U)
+          if [[ -n $conflicts ]]; then
+            echo "::error::Upstream merge has source conflicts."
+            printf '%s\n' "$conflicts"
+            {
+              printf 'Source conflicts. Resolve these files before syncing:\n\n'
+              printf '~~~text\n%s\n~~~\n' "$conflicts"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          git diff --cached --exit-code "$base" -- "${protected_paths[@]}"
+
+          remote_branch=$(git ls-remote --heads origin "$branch_ref")
+          if [[ -n $remote_branch ]]; then
+            # A previous run may have pushed the branch before PR creation failed.
+            git fetch --no-tags origin "$branch_ref"
+            read -r branch_commit branch_base branch_release extra < <(
+              git rev-list --parents -n 1 FETCH_HEAD
+            )
+            if [[ $branch_release != "$release_commit" || -n $extra ]] ||
+              ! git merge-base --is-ancestor "$branch_base" "$base" ||
+              ! git diff --quiet "$branch_base" "$branch_commit" -- "${protected_paths[@]}"; then
+              echo "::error::Existing sync branch has unexpected history or protected changes: $branch"
+              exit 1
+            fi
+          else
+            git commit -m "Merge upstream stable release $tag"
+            git push --force-with-lease="$branch_ref:" origin "HEAD:$branch_ref"
+          fi
+
+          pr_body=$(cat <<EOF
+          Upstream stable release: https://github.com/$upstream/releases/tag/$tag
+          Upstream commit: \`$release_commit\`
+
+          ### Review checklist
+          - [ ] Check changes to analytics, telemetry, and diagnostic reporting.
+          - [ ] Check identifier collection, including reads of authentication files for telemetry.
+          - [ ] Check new or changed outbound connections, including T3 Connect and any effect on direct Tailscale connections.
+          - [ ] Review dependency and lockfile changes.
+          - [ ] Check for distribution or deployment configuration changes outside the protected paths.
+          - [ ] After review, merge manually using **Create a merge commit** to preserve upstream history.
+          EOF
+          )
+          pr_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --draft --base main --head "$branch" \
+            --title "Sync upstream stable release $tag" --body "$pr_body")
+          printf 'Draft pull request: %s\n' "$pr_url" | tee -a "$GITHUB_STEP_SUMMARY"
