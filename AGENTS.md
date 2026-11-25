@@ -1,54 +1,36 @@
-# T3 Code
+# Agent Desk
 
-T3 Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web, desktop, and mobile clients.
+Agent Desk is an independent fork of [T3 Code](https://github.com/pingdotgg/t3code) for local coding agents and Git workflows. The fork ships Windows x64 (with a WSL runtime) and Linux x64 desktop builds and serves its bundled web client. Keep local provider authentication and user-initiated provider and Git traffic working. Keep direct pairing over LAN and Tailscale working with the existing environment authentication.
 
-You can think of T3 Code as an open source "bring-your-own-subscription" alternative to apps like Claude Desktop, Codex App, Cursor Glass and Conductor.
+## Fork policy
 
-## What makes T3 Code special?
+- Disable product analytics, tracking identifiers, agent feedback delivery, external OTLP diagnostics, and relay telemetry in the production server, desktop app, and bundled web client. Wire disabled services at startup and remove telemetry-only callers that would otherwise read credentials or collect identifiers. Saved settings and environment variables must leave those outbound paths disabled. Preserve local logs, traces, resource diagnostics, and displayed provider usage. See [Privacy and diagnostics](docs/user/telemetry.md) and [Product analytics](docs/internals/08_product-analytics.md).
+- Keep T3 Connect, managed tunnels, relay publishing, and hosted guest links disabled. Direct WebSocket connections, local pairing, and provider sign-in use their existing paths.
+- Use Agent Desk branding and its separate app identity and state directories. Retain the fork's GitHub Actions. The build workflow produces Windows and Linux artifacts and can publish an unsigned Windows preview to this fork's GitHub Releases. Official T3 hosting, deployment, registries, stores, and updater feeds stay disabled for the fork.
 
-We have over 500,000 users who love T3 Code. It's important we maintain the things they love as we continue to iterate on the product. Here's a brief list of the things we can never compromise on.
+## Sync upstream
 
-### 1. Open at the core
+- `origin` is `ririo08/agent-desk` and `upstream` is `pingdotgg/t3code`. Pull in tagged stable releases and preserve both histories with merge commits.
+- The [sync workflow](.github/workflows/sync-upstream.yml) checks the latest stable release on a schedule. It prepares a draft PR if the merge is clean and lists conflicting files if it stops. Resolve source conflicts file by file on the release branch, keeping the fork policy and compatible upstream fixes. Preserve the fork's workflow/action directories and deployment configuration.
+- Upstream source at a release tag may still carry the previous version in package manifests. Verify the preview build version matches the tag being integrated and update the fork's release manifests with `node scripts/update-release-package-versions.ts <version>` when needed.
+- Review and merge sync PRs manually using **Create a merge commit**. Record the upstream tag, privacy-sensitive conflict decisions, and verification results in the PR.
 
-T3 Code is truly open. We share our roadmap, we share how we think about things, and of course we share all our code. A large number of our users run forks (our MIT license covers source code only, not T3 Code's trademarks or branding; see [TRADEMARK.md](TRADEMARK.md)). We work in the open, and should strive to stay that way.
+## Code Review Rules
 
-### 2. Performance without compromise
-
-Lots of apps have gotten bogged down with bad tech decisions and "slop". We have not, and we're proud of the performance of T3 Code. We regularly audit for performance regressions, often caused by sending too much data over websockets, css animations causing gpu spikes, lists being hard to render, and more. Make sure all changes are considerate of performance impact.
-
-### 3. Remote ready
-
-The architecture of T3 Code's websocket layer (`t3`) enables a lot of awesome remote features. These have become core to the product. Whether users are connecting directly over their local network, using Tailscale, or leaning in fully with T3 Connect (our tunnel solution, also in this repo), we need to make sure new features are properly supported.
-
-### 4. Multi-surface
-
-T3 Code has 3 key app surfaces: **web**, **desktop**, and **mobile**.
-
-**Web** is kind of two surfaces, as we have the public facing "app.t3.codes" as well as locally hosting the web app through the `t3` command. Both need to be supported by all new features where reasonable.
-
-**Desktop** is the main surface most users install first. It's a full Electron app that bundles the server runner as well. The desktop app can also be used as the host server, allowing remote connections from app.t3.codes or the mobile app.
-
-**Mobile** is a React Native app for both iOS and Android, available on the App Store and Google Play. The mobile app allows for connecting to any T3 Code server to control work remotely.
-
-## A note from Theo
-
-I like ambitious ideas, simple systems, and software that feels obvious. Do not preserve complexity just because it already exists. Do not introduce machinery because it looks architecturally impressive. Understand the real constraint, then fight for the smallest model that makes the correct behavior unsurprising.
-
-Channel both "measure twice, cut once" and "yagni". Fight scope creep. Try to honor the dev's intent in both a minimal and realistic fashion.
-
-The rest of this document is meant to help you navigate the codebase and make changes effectively. Think of these instructions less as "hard rules", more as "good defaults". The developer's preferences should be able to override anything here.
-
-Of note: Most T3 Code contributions will come from T3 Code itself, often controlled remotely. This means you should be careful about accessing data, killing dev servers, and other things that may damage the T3 Code instance that the contributor is using.
+- Flag any new or restored outbound analytics, diagnostic exports, or T3 Connect calls. Trace entry points, startup layers, and fallback configuration. Check that environment variables and saved settings cannot re-enable them.
+- Flag reads of Codex, Claude, or other provider authentication files for telemetry and collection or transmission of account, device, or install identifiers for tracking. Preserve credential handling required by user-initiated sign-in and provider use. Use fake credentials and a dummy receiver to verify privacy-sensitive paths.
+- Verify local coding, Git, diagnostics, and direct pairing through the affected server, desktop, WSL, and web paths. Check the dependency and lockfile diff for new network calls, install scripts, and native runtime changes.
+- Check workflow permissions and changes to distribution, deployment, update endpoints, and caches. Retain fork-owned checks and release paths. Keep review, merge, and release decisions with the maintainer.
 
 ## Terminology
 
-- **you** = the agent reading this file. **we / us / maintainers** = Theo, Julius, and the people building T3 Code. **user** = person driving coding agents in T3 Code. **agent** = coding agent running inside T3 Code.
-- Domain terms (environment, project, thread, turn, provider, checkpoint, etc.): [00_glossary.md](docs/internals/00_glossary.md).
+- **Upstream** means T3 Code. **Fork** means Agent Desk. A user runs the app, and an agent is the coding assistant running through it.
+- Domain terms (environment, project, thread, turn, provider, checkpoint) are defined in the [glossary](docs/internals/00_glossary.md).
 
 ## The three ways to hurt yourself
 
 1. **Killing by pattern.** Never `pkill -f`, `pgrep | kill`, or `kill` a PID you found by matching a name, path, or worktree string. Your own agent process has this worktree's path in its argv, and this machine runs several other dev servers at once. Kill only a PID you captured at spawn, or the owner of your port from `ss -H -ltnp` after confirming `/proc/<pid>/cwd` is your worktree.
-2. **Writing to the live install.** `~/.t3/userdata` is the developer's real T3 Code database, in use while you work. Reading or copying from it is fine. Never start a server against it, never open it read-write, never clean it up.
+2. **Writing to a live install.** Use isolated state for all tests, dev servers, and fixtures. Protect Agent Desk's `~/.agent-desk/userdata`, upstream T3 Code's `~/.t3/userdata`, and their Windows and WSL equivalents from writes or cleanup.
 3. **Baking in origins.** Never set `VITE_HTTP_URL` or `VITE_WS_URL` for dev. Dev is single-origin and Vite proxies `/api`, `/ws`, `/oauth`, and `/.well-known`. Setting them bakes localhost into the bundle and silently breaks every remote browser.
 
 ## Hit every surface
@@ -56,12 +38,12 @@ Of note: Most T3 Code contributions will come from T3 Code itself, often control
 The most common defect in this repo is a change that works on the path you tested and is missing everywhere else. Before calling frontend work done, walk this list and say which entries applied:
 
 - **Entry points.** Chat view, Settings, command palette, and keybindings. Fixing one is not fixing the feature.
-- **Clients.** Web, desktop (Electron shell/IPC), and mobile (React Native). Shared logic lives in `packages/client-runtime`.
+- **Clients.** Check the bundled web client and desktop (Electron shell/IPC), including WSL when applicable. Shared logic lives in `packages/client-runtime`. Check mobile compatibility when changing shared contracts or client code.
 - **Providers.** Every provider adapter needs a decision, even if the decision is "not supported here".
 - **Agents.** Capabilities a user triggers should be service methods reachable by MCP tools and scheduled tasks, not inline handler code.
 - **Contracts.** Wire changes go in `packages/contracts` so server, web, mobile, and desktop follow.
 - **Reverse states.** Every way in needs a way out and a way to see it (snooze/unsnooze, close/reopen). A one-way door is a bug.
-- **Connection modes.** Local, remote/relay, and tunnel; multi-device and multi-environment.
+- **Connection modes.** Verify local, direct LAN, and Tailscale paths when applicable. Keep the cloud and relay paths disabled in the fork.
 - **Languages.** Translate user-facing copy in `apps/{web,mobile}/src/i18n/translations` (`vp run i18n:generate` / `vp run i18n:check`) and `apps/marketing/src/i18n`. See [14_i18n.md](docs/internals/14_i18n.md).
 - **Docs.** Check whether the change makes existing guidance inaccurate. Follow [Documentation](#documentation).
 
@@ -77,7 +59,8 @@ See [00_development.md](docs/operations/00_development.md) for setup, ports, see
 
 ## Verifying
 
-- Before you push, run `vp run check:changed`. **Do not run repo-wide checks** (`vp check`, `vp run -r test`, `vp run -r typecheck`) unless asked—CI owns the full suite.
+- Before pushing, run `vp run check:changed origin/main`. The [PR checks workflow](.github/workflows/pull-request-checks.yml) runs affected type checks and related tests with `vp run check:changed --typecheck-and-test <base>`. Use targeted checks for local iteration.
+- Run the fork's Windows and Linux build workflow before publishing an installer. Exercise Windows startup and the WSL backend when packaging or runtime startup changes.
 - Iterate with `vp test run <files>` (add `-t "<name>"` for large files) and `vp run typecheck` (`effect-tsgo tsrs --noEmit`). Run `node -e` snippets from the owning package (`effect` does not resolve from repo root).
 - Follow [15_testing.md](docs/internals/15_testing.md) for what to test, bug-fix proof, draining async work (no sleeps/polling), web browser tests (`await using screen = await render(...)`), and real-app [Scenarios](docs/internals/15_testing.md#scenarios) (`vp run scenarios:prove`).
 - Give user-visible frontend changes one integrated pass in a real client: `test-t3-app` for web, `test-t3-mobile` for mobile (primary agent only; subagents do not launch dev servers). Inspect the rendered result and walk the flow as a user using the feature—checking layout, visual hierarchy, and ergonomics—and fix anything rough until you are satisfied before handing back. Use the free `Replay (dev)` provider unless the change depends on a real provider (then pick its cheapest model, e.g. Haiku or Luna). On mobile, run `vp run mobile:install <ios|android> [device-id]` before Metro rather than rebuilding from scratch.
@@ -91,7 +74,7 @@ See [00_development.md](docs/operations/00_development.md) for setup, ports, see
 - Never make a PR unless the developer explicitly asks you to do so.
 - `origin` is not always GitHub. Check `git remote get-url origin` before your first forge command and use that forge's CLI and skill. See [Forge mirror](docs/operations/00_development.md#forge-mirror-optional).
 - Conventional commit titles, plain language: `fix(web): new threads no longer spike CPU`.
-- Body: the problem in a sentence or two, then how you fixed it. End with the model and harness that did the work.
+- Describe the problem and the change, list the applicable checks and gaps, and end with the model and harness that did the work.
 - UI changes need before/after images; motion or timing needs a short video. Upload PR evidence to GitHub—never commit PR-only screenshots or assets.
 - One request is one PR. Split only when asked. Outside contributions follow [CONTRIBUTING.md](CONTRIBUTING.md#one-problem).
 - When babysitting: call `watch_pull_request` and end your turn. Do not poll or sleep. Verify each bot finding against the source, fix real ones, dismiss false positives with a written reason. Stay quiet when nothing is new; stop when bots are green on the latest commit.
@@ -110,7 +93,7 @@ Most code changes do not need an internal documentation change. Agents can read 
 ## Plans and work artifacts
 
 - Do not commit implementation plans, research notes, or agent scratch files (keep temporary material outside the worktree).
-- Track active maintainer work in its GitHub issue or project item; external proposals belong in Ideas discussions. A merged PR is the implementation record.
+- Use the fork's issues and pull requests to track Agent Desk work.
 
 ## Where code lives
 

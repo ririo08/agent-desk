@@ -10,6 +10,7 @@
 //   vp run check:changed                  compare against the closest merge base with any remote main
 //   vp run check:changed <ref>            compare against the merge base with <ref>
 //   vp run check:changed --concurrency 1  run the steps one at a time
+//   vp run check:changed --typecheck-and-test <ref>  run affected typechecks and tests only
 //
 // Uncommitted and untracked files count. Affected packages come from
 // .github/scripts/ci-changes.cjs, the same mapping CI uses to gate its jobs.
@@ -257,6 +258,7 @@ export const docReaderTests = (files: ReadonlyArray<string>) =>
 
 const checkChanged = Effect.fn("checkChanged")(function* (input: {
   readonly ref: Option.Option<string>;
+  readonly typecheckAndTest: boolean;
   readonly concurrency: Option.Option<number>;
   readonly timeout: Option.Option<number>;
 }) {
@@ -335,7 +337,11 @@ const checkChanged = Effect.fn("checkChanged")(function* (input: {
     return hash.digest("hex");
   });
   const key = yield* inputKey;
-  const cachePath = inRoot("node_modules/.cache/check-changed.json");
+  const cachePath = inRoot(
+    input.typecheckAndTest
+      ? "node_modules/.cache/check-changed-typecheck-and-test.json"
+      : "node_modules/.cache/check-changed.json",
+  );
   // A missing or unreadable cache is a miss, never a failure.
   const cached = yield* fs
     .readFileString(cachePath)
@@ -404,24 +410,27 @@ const checkChanged = Effect.fn("checkChanged")(function* (input: {
   // knip:check cannot be scoped to a package. Any code change can leave a file,
   // export, or dependency unused (removing the last import of a helper does), so
   // it runs whenever code or a manifest changes.
-  const runKnip = files.some(
-    (file) => CODE.test(file) || path.basename(file) === "package.json" || file === "knip.jsonc",
-  );
-  // CI runs knip:check as a task that depends on one script per pass. The passes
-  // do not depend on each other, so they run side by side here.
-  const rootPackage = yield* fs
-    .readFileString(inRoot("package.json"))
-    .pipe(Effect.flatMap(decodeRootPackageJson), Effect.orDie);
+  const runKnip =
+    !input.typecheckAndTest &&
+    files.some(
+      (file) => CODE.test(file) || path.basename(file) === "package.json" || file === "knip.jsonc",
+    );
   const knipPasses: Array<Array<string>> = [];
-  for (const command of [
-    rootPackage.scripts["knip:check:files"],
-    rootPackage.scripts["knip:check:exports"],
-  ]) {
-    const [bin, ...args] = command.trim().split(/\s+/);
-    if (bin !== "knip" || /["'$\\|;&<>]/.test(command)) {
-      return yield* Effect.fail(`check:changed cannot split knip:check: ${command}`);
+  if (runKnip) {
+    // The two CI passes are independent and run side by side.
+    const rootPackage = yield* fs
+      .readFileString(inRoot("package.json"))
+      .pipe(Effect.flatMap(decodeRootPackageJson), Effect.orDie);
+    for (const command of [
+      rootPackage.scripts["knip:check:files"],
+      rootPackage.scripts["knip:check:exports"],
+    ]) {
+      const [bin, ...args] = command.trim().split(/\s+/);
+      if (bin !== "knip" || /["'$\\|;&<>]/.test(command)) {
+        return yield* Effect.fail(`check:changed cannot split knip:check: ${command}`);
+      }
+      knipPasses.push(["exec", "knip", ...args]);
     }
-    knipPasses.push(["exec", "knip", ...args]);
   }
 
   // A version bump can leave a patch unused, causing pnpm to reject the install
@@ -508,19 +517,21 @@ const checkChanged = Effect.fn("checkChanged")(function* (input: {
   const compilerFiles = compilerApps.reduce((count, app) => count + app.names.length, 0);
 
   const steps: Array<Step<never>> = [
-    ...(runPatchCheck ? [{ name: "unused patches", run: checkPatches }] : []),
-    ...(present.length > 0
+    ...(!input.typecheckAndTest && runPatchCheck
+      ? [{ name: "unused patches", run: checkPatches }]
+      : []),
+    ...(!input.typecheckAndTest && present.length > 0
       ? [command("format", ["fmt", "--check", "--no-error-on-unmatched-pattern", ...present])]
       : []),
-    ...(code.length > 0
+    ...(!input.typecheckAndTest && code.length > 0
       ? [command("lint", ["lint", "--no-error-on-unmatched-pattern", ...code])]
       : []),
-    ...(runKnip
-      ? knipPasses.map((args, index) => command(`knip ${index + 1}/${knipPasses.length}`, args))
+    ...knipPasses.map((args, index) => command(`knip ${index + 1}/${knipPasses.length}`, args)),
+    ...(!input.typecheckAndTest
+      ? graphql.map((dir) =>
+          command(`graphql (${dir})`, ["run", "--filter", `./${dir}`, "generate", "--check"]),
+        )
       : []),
-    ...graphql.map((dir) =>
-      command(`graphql (${dir})`, ["run", "--filter", `./${dir}`, "generate", "--check"]),
-    ),
     ...(affected.length > 0
       ? [
           {
@@ -598,9 +609,13 @@ const checkChanged = Effect.fn("checkChanged")(function* (input: {
     "mobile native lint": outputs.mobile_native,
     "release smoke": outputs.release_smoke,
   }).flatMap(([job, runs]) => (runs ? [job] : []));
-  if (ciOnly.length > 0) summary.push(`  CI also runs: ${ciOnly.join(", ")}`);
-  if (!runPatchCheck) summary.push("  unused patch check skipped: no dependency files changed");
-  if (!runKnip) summary.push("  knip skipped: no code or manifest changed");
+  if (input.typecheckAndTest) {
+    if (results.length === 0) summary.push("  no affected packages or related tests");
+  } else {
+    if (ciOnly.length > 0) summary.push(`  CI also runs: ${ciOnly.join(", ")}`);
+    if (!runPatchCheck) summary.push("  unused patch check skipped: no dependency files changed");
+    if (!runKnip) summary.push("  knip skipped: no code or manifest changed");
+  }
   yield* Console.log(`\n${summary.join("\n")}`);
 
   if (results.some((result) => result.outcome !== "pass")) return false;
@@ -624,6 +639,10 @@ export const checkChangedCommand = Command.make(
     ref: Argument.String("ref").pipe(
       Argument.withDescription("Compare against the merge base with this ref."),
       Argument.optional,
+    ),
+    typecheckAndTest: Flag.Boolean("typecheck-and-test").pipe(
+      Flag.withDescription("Run affected package typechecks and related tests only."),
+      Flag.withDefault(false),
     ),
     concurrency: Flag.Int("concurrency").pipe(
       Flag.withDescription(
