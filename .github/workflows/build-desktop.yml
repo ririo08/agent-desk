@@ -1,19 +1,26 @@
 name: Build Windows and Linux desktop
 
 on:
+  pull_request:
+    branches: [main]
+    types: [closed]
   workflow_dispatch:
     inputs:
       publish:
         description: Publish the Windows installer as an Agent Desk prerelease
         type: boolean
         default: false
+      sync_pr:
+        description: Merged upstream stable PR number to build from main
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: build-desktop-${{ inputs.publish && 'publish' || 'build' }}-${{ github.ref }}
-  cancel-in-progress: ${{ !inputs.publish }}
+  group: build-desktop-${{ (github.event_name == 'pull_request' || inputs.publish) && 'publish' || 'build' }}-${{ github.event.pull_request.number || inputs.sync_pr || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' && !inputs.publish }}
 
 env:
   T3CODE_TELEMETRY_ENABLED: "false"
@@ -23,18 +30,81 @@ env:
 jobs:
   linux:
     name: Linux x64
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.repository == 'ririo08/agent-desk' &&
+       github.event.pull_request.merged &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'upstream/stable-v'))
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      upstream_tag: ${{ steps.source.outputs.upstream_tag }}
       version: ${{ steps.version.outputs.value }}
     steps:
+      - name: Select the release source
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_PR: ${{ github.event.pull_request.number || inputs.sync_pr }}
+        run: |
+          if [[ -z "$SYNC_PR" ]]; then
+            printf 'commit=%s\n' "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ $GITHUB_REF != refs/heads/main || ! $SYNC_PR =~ ^[1-9][0-9]*$ ]]; then
+            echo '::error::Select main and enter the number of a merged stable sync PR.'
+            exit 1
+          fi
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$SYNC_PR" | jq -er --arg repo "$GITHUB_REPOSITORY" '
+            select(.merged and .base.ref == "main" and .head.repo.full_name == $repo)
+            | [.head.ref, .merge_commit_sha, .merged_at] | @tsv
+          ')
+          read -r branch commit merged_at <<< "$pr"
+          if [[ ! $branch =~ ^upstream/stable-v[0-9]+\.[0-9]+\.[0-9]+$ || ! $commit =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::The merged PR must come from a stable upstream sync branch.'
+            exit 1
+          fi
+          tag=${branch#upstream/stable-}
+          stable_tag=$(gh api "repos/pingdotgg/t3code/releases/tags/$tag" \
+            --jq 'select(.draft == false and .prerelease == false) | .tag_name')
+          if [[ $stable_tag != "$tag" ]]; then
+            echo '::error::The PR must integrate a published, stable upstream release.'
+            exit 1
+          fi
+
+          # The merge date and PR number keep the release version stable across retries.
+          version="${tag#v}-preview.$(TZ=Asia/Tokyo date -d "$merged_at" +%Y%m%d).$SYNC_PR"
+          printf 'commit=%s\nupstream_tag=%s\nversion=%s\n' "$commit" "$tag" "$version" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          ref: ${{ steps.source.outputs.commit }}
+          fetch-depth: ${{ steps.source.outputs.upstream_tag == '' && 1 || 0 }}
           sparse-checkout: |
             /*
             !/.repos/
           sparse-checkout-cone-mode: false
       - uses: ./.github/actions/drop-checkout-credentials
+
+      - name: Verify the merged upstream tag
+        if: steps.source.outputs.upstream_tag != ''
+        env:
+          UPSTREAM_TAG: ${{ steps.source.outputs.upstream_tag }}
+        run: |
+          git fetch --no-tags https://github.com/pingdotgg/t3code.git "refs/tags/$UPSTREAM_TAG"
+          upstream_commit=$(git rev-parse --verify 'FETCH_HEAD^{commit}')
+          previous_main=$(git rev-parse --verify 'HEAD^1^{commit}')
+          if ! git merge-base --is-ancestor "$upstream_commit" HEAD ||
+            git merge-base --is-ancestor "$upstream_commit" "$previous_main"; then
+            echo "::error::This PR merge must introduce upstream $UPSTREAM_TAG into main."
+            exit 1
+          fi
 
       - name: Install native build dependencies
         run: |
@@ -52,9 +122,14 @@ jobs:
 
       - name: Set the preview version
         id: version
+        env:
+          SYNC_VERSION: ${{ steps.source.outputs.version }}
         run: |
-          base=$(node -p "require('./apps/server/package.json').version.split('-')[0]")
-          version="$base-preview.$(TZ=Asia/Tokyo date +%Y%m%d).$GITHUB_RUN_NUMBER"
+          version=$SYNC_VERSION
+          if [[ -z "$version" ]]; then
+            base=$(node -p "require('./apps/server/package.json').version.split('-')[0]")
+            version="$base-preview.$(TZ=Asia/Tokyo date +%Y%m%d).$GITHUB_RUN_NUMBER"
+          fi
           node scripts/update-release-package-versions.ts "$version"
           echo "value=$version" >> "$GITHUB_OUTPUT"
 
@@ -98,6 +173,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
+          ref: ${{ needs.linux.outputs.commit }}
           sparse-checkout: |
             /*
             !/.repos/
@@ -139,7 +215,10 @@ jobs:
 
   publish:
     name: Publish the Windows prerelease
-    if: inputs.publish && github.repository == 'ririo08/agent-desk' && github.ref == 'refs/heads/main'
+    if: >-
+      github.repository == 'ririo08/agent-desk' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'pull_request' || inputs.publish)
     needs: [linux, windows]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -155,6 +234,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BUILD_VERSION: ${{ needs.linux.outputs.version }}
+          SOURCE_COMMIT: ${{ needs.linux.outputs.commit }}
+          UPSTREAM_TAG: ${{ needs.linux.outputs.upstream_tag }}
         shell: bash
         run: |
           cd release
@@ -168,7 +249,30 @@ jobs:
           mv -- "${installers[0]}" "$installer"
           sha256sum -- "$installer" > SHA256SUMS.txt
           tag="agent-desk-v$BUILD_VERSION"
-          gh release create "$tag" "$installer" SHA256SUMS.txt \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "Agent Desk $BUILD_VERSION" --prerelease --latest=false \
-            --notes "Unsigned Windows x64 preview with an embedded Linux CLI for WSL. Install manually. Agent Desk is an unofficial MIT-licensed fork of T3 Code, unaffiliated with T3 Tools."
+          notes='Unsigned Windows x64 preview with an embedded Linux CLI for WSL. Install manually. Agent Desk is an unofficial MIT-licensed fork of T3 Code, unaffiliated with T3 Tools.'
+          if [[ -n "$UPSTREAM_TAG" ]]; then
+            notes+=$'\n\n'"Upstream release: https://github.com/pingdotgg/t3code/releases/tag/$UPSTREAM_TAG"
+          fi
+
+          if existing=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft,targetCommitish); then
+            if [[ $(jq -r .isDraft <<< "$existing") == true ]]; then
+              if [[ $(jq -r .targetCommitish <<< "$existing") != "$SOURCE_COMMIT" ]]; then
+                echo "::error::The existing draft $tag targets a different commit."
+                exit 1
+              fi
+            else
+              actual_commit=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha)
+              if [[ $actual_commit != "$SOURCE_COMMIT" ]]; then
+                echo "::error::The existing release $tag points to a different commit."
+                exit 1
+              fi
+              echo "Release $tag is already published for this commit."
+              exit 0
+            fi
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_COMMIT" \
+              --title "Agent Desk $BUILD_VERSION" --draft --prerelease --latest=false --notes "$notes"
+          fi
+
+          gh release upload "$tag" "$installer" SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false

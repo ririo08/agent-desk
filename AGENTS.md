@@ -14,6 +14,7 @@ Agent Desk is an independent fork of [T3 Code](https://github.com/pingdotgg/t3co
 - The [sync workflow](.github/workflows/sync-upstream.yml) checks the latest stable release on a schedule. It prepares a draft PR if the merge is clean and lists conflicting files if it stops. Resolve source conflicts file by file on the release branch, keeping the fork policy and compatible upstream fixes. Preserve the fork's workflow/action directories and deployment configuration.
 - Upstream source at a release tag may still carry the previous version in package manifests. Verify the preview build version matches the tag being integrated and update the fork's release manifests with `node scripts/update-release-package-versions.ts <version>` when needed.
 - Review and merge sync PRs manually using **Create a merge commit**. Record the upstream tag, privacy-sensitive conflict decisions, and verification results in the PR.
+- Merging a stable sync PR into `main` starts the [desktop build](.github/workflows/build-desktop.yml) at that merge commit and publishes the Windows preview once both builds pass. To run the same release for an already-merged sync PR, dispatch that workflow on `main` with `sync_pr` and `publish`.
 
 ## Code Review Rules
 
