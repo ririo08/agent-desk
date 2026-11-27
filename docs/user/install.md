@@ -1,80 +1,28 @@
-# Install T3 Code
+# Install Agent Desk
 
-T3 Code runs coding agents on your computer (or server) and lets you control them from the desktop app, web app, or mobile app. Install T3 Code on the machine where your agents will run first.
-
-## Requirements
-
-You need at least one installed, authenticated coding agent (provider) before starting a thread. You can launch T3 Code first and set up providers from the [Welcome page](./welcome-page.md) or **Settings → Providers**.
-
-## Command line
-
-Install the `t3` command to `~/.local/bin`:
-
-```bash
-# macOS / Linux
-curl -fsSL https://t3.codes/install.sh | sh
-```
-
-```powershell
-# Windows (PowerShell)
-irm https://t3.codes/install.ps1 | iex
-```
-
-Set `T3CODE_CHANNEL=nightly` for nightly builds or `T3CODE_VERSION=<ver>` to pin a version. To try once without installing, run `npx t3@latest` (requires Node.js; always runs the latest stable release).
-
-| Task                          | Command                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| Start server and open web app | `t3` (or `t3 ./my-project`)                                             |
-| Start server without browser  | `t3 serve`                                                              |
-| Set up remote access          | `t3 up` ([Remote access](./remote-access.md))                           |
-| Run in the background         | `t3 service install` ([Background service](./background-service.md))    |
-| Update                        | `t3 update`                                                             |
-| Reclaim database space        | `t3 doctor` ([Details](./background-service.md#reclaim-database-space)) |
-| Uninstall                     | `t3 uninstall`                                                          |
-
-If `t3` reports a server is already running, connect with `t3 pair` or pass a separate `--base-dir`. Run `t3 --help` for all commands.
-
-### Intel Macs
-
-There is no standalone `t3` binary for Intel Macs—use the desktop app, or build a server from source with `vp` ([development runbook](../operations/00_development.md#first-checkout)):
-
-```bash
-git clone https://github.com/pingdotgg/t3code
-cd t3code && vp i && vp run build:desktop
-node apps/server/dist/bin.mjs
-```
+Agent Desk runs coding agents on the host that holds your code and provider sign-ins. Use the
+desktop app on Windows or Linux. Other devices can use the bundled web app from that host.
 
 ## Desktop app
 
-Download from [GitHub Releases](https://github.com/pingdotgg/t3code/releases) or install via a package manager:
-
-| Platform                | Command                                                          |
-| ----------------------- | ---------------------------------------------------------------- |
-| macOS                   | `brew install --cask t3-code`                                    |
-| Windows                 | `winget install T3Tools.T3Code` or `scoop install extras/t3code` |
-| Debian / Ubuntu         | `sudo apt install ./T3-Code-*.deb`                               |
-| Arch Linux              | `yay -S t3code-bin` (or `yay -S t3code-nightly-bin`)             |
-| Nix (flakes, Nix 2.30+) | `nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code`     |
-
-- **Linux AppImage**: `chmod +x ./T3-Code-*.AppImage && ./T3-Code-*.AppImage` (x86_64 and ARM64). `.deb` self-updates with a password prompt; update AUR packages via your AUR helper (`yay -Syu`).
-- **NixOS / Home Manager**: Add `pkgs.t3code` to `environment.systemPackages` or `home.packages` (`t3code-desktop` launches the app; `t3` is included). Update via Nix rather than the in-app updater.
-
-### The `t3` command
-
-The desktop app bundles `t3` and sets it up on first launch (manage anytime under **Settings → About → t3 command**). Use **Add to PATH** if needed, then open a new terminal.
-
-- **Open a folder in the running desktop app**: Run `t3 app` (or `t3 app ../my-project`) from a terminal, or drag folders from your file manager onto the desktop sidebar.
+- **Windows x64** — Download the setup EXE from [Agent Desk releases](https://github.com/ririo08/agent-desk/releases)
+  and run it. The preview is unsigned. Its WSL server runtime is included in the installer.
+- **Linux x64** — Download `linux-x64-appimage` from a successful
+  [desktop build](https://github.com/ririo08/agent-desk/actions/workflows/build-desktop.yml). Sign in to
+  GitHub to download the artifact, extract the AppImage, then mark it executable and open it.
 
 ### Windows Subsystem for Linux
 
-Select a WSL distro in **Settings → Sharing & access** to run agents and projects inside WSL (install provider CLIs inside that distro). T3 Code manages its own server runtime inside WSL automatically.
+Select a WSL distro in **Settings → Sharing & access** to run projects and agents inside WSL.
+Install and sign in to provider CLIs inside that distro.
 
-## Mobile app
+## Command line
 
-Install from the [App Store](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824) or [Google Play](https://play.google.com/store/apps/details?id=com.t3tools.t3code) (QR codes are also in **Settings → About → Mobile app**). The mobile app connects to a server on another machine via [remote access](./remote-access.md).
+The desktop app bundles the `t3` command. Open **Settings → About → t3 command**, choose
+**Add to PATH** if needed, and open a new terminal. Run `t3 app` to open a folder in the desktop app.
 
-- Store builds work with both Stable and Nightly servers. Optional Android beta APKs are under [Android beta releases](https://github.com/pingdotgg/t3code/releases?q=android-beta-).
-- If the mobile app crashes on launch, open **Settings → Diagnostics** on the next launch to copy recent startup crash reports.
+The Linux CLI is also available as the `linux-x64-cli` artifact from a successful desktop build.
+See the [CLI reference](./cli.md) for commands and [remote access](./remote-access.md) for pairing.
 
 ## Providers
 
@@ -100,7 +48,7 @@ Open **Settings → Providers** (web or desktop), select the environment, and en
 
 ### Provider check timeouts
 
-If a working CLI times out during T3 Code's readiness check, increase its probe deadline (in milliseconds) in the server's environment (or systemd override / `service.env`) and restart:
+If a working CLI times out during Agent Desk's readiness check, increase its probe deadline (in milliseconds) in the server's environment (or systemd override / `service.env`) and restart:
 
 ```bash
 T3CODE_CODEX_PROBE_TIMEOUT_MS=60000 T3CODE_CLAUDE_PROBE_TIMEOUT_MS=60000 t3 serve
@@ -122,8 +70,8 @@ T3CODE_CODEX_PROBE_TIMEOUT_MS=60000 T3CODE_CLAUDE_PROBE_TIMEOUT_MS=60000 t3 serv
 
 ## Next steps
 
-- [User guide index](./README.md): overview of how T3 Code works.
+- [User guide index](./README.md): overview of how Agent Desk works.
 - [Working with threads](./thread-sidebar.md): start tasks and organize parallel work.
 - [Permission modes](./permission-modes.md): control when agents ask before acting.
 - [Remote access](./remote-access.md): connect from another device.
-- [Updating T3 Code](./updating.md): keep apps, servers, and providers up to date.
+- [Updating Agent Desk](./updating.md): keep apps, servers, and providers up to date.

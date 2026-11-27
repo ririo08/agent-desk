@@ -1,16 +1,15 @@
 # Outside agents
 
-Connect external agents (Claude Code or Codex in your terminal, ChatGPT, or any OAuth-capable MCP client) to your T3 Code environment over MCP to read projects/threads, launch and message threads, and monitor events.
+Connect external agents (such as Claude Code or Codex in your terminal) to your Agent Desk environment over MCP to read projects/threads, launch and message threads, and monitor events.
 
 ## Quick setup
 
-Open the command palette (`Cmd/Ctrl+K`) and run **Use T3 Code in another app (MCP)** (or open **Settings → Sharing & access**), pick your app, and follow the prompts.
+Open the command palette (`Cmd/Ctrl+K`) and run **Use Agent Desk in another app (MCP)** (or open **Settings → Sharing & access**), pick your app, and follow the prompts.
 
-- Cloud assistants (like ChatGPT or Claude) require **T3 Connect** enabled on the environment.
 - To also reach other machines through the same connection, enable **Settings → Labs → Linked environments** and [link them](./remote-access.md#link-another-environment).
 - To copy the raw MCP endpoint (`https://<environment-address>/mcp`), open an environment's menu in **Settings → Environments → Copy MCP URL**. OAuth requires `https://` or `localhost` (plain `http://` LAN/Tailscale addresses cannot complete OAuth).
 
-### CLI clients and ChatGPT
+### CLI clients
 
 - **Claude Code**:
   ```sh
@@ -22,11 +21,10 @@ Open the command palette (`Cmd/Ctrl+K`) and run **Use T3 Code in another app (MC
   codex mcp add t3 --url https://<environment-address>/mcp
   codex mcp login t3    # add --no-browser on headless hosts
   ```
-- **ChatGPT / other OAuth MCP clients**: Add a custom remote MCP server pointing to `https://<environment-address>/mcp` with **OAuth** authentication (no client ID or secret needed).
 
 ## Approve access and permissions
 
-The first time an outside agent connects, approve its sign-in page (via your T3 Connect account, an already-authorized browser, or a one-time pairing code from **Settings → Sharing & access** / `t3 auth pairing create`).
+The first time an outside agent connects, approve its sign-in page (via an already-authorized browser or a one-time pairing code from **Settings → Sharing & access** / `t3 auth pairing create`).
 
 - **Read only**: Inspect projects, threads, providers, and models.
 - **Supervised → Full access**: Also launch, message, and stop threads up to the granted permission mode. Managing [workflow runs](./workflows.md) or using approval-skipping agent modes requires **Full access** (or your policy's maximum mode).
@@ -34,7 +32,7 @@ The first time an outside agent connects, approve its sign-in page (via your T3 
 
 ## Available tools and limits
 
-Tools that act as a running T3 thread (`delegate_task`, `create_threads`, `request_secret`, `html_render`, `preview_*`, `device_*`, `t3_worktree_handoff`) only work for agents running **inside** T3 Code.
+Tools that act as a running T3 thread (`delegate_task`, `create_threads`, `request_secret`, `html_render`, `preview_*`, `device_*`, `t3_worktree_handoff`) only work for agents running **inside** Agent Desk.
 
 - Use `t3_thread_launch` + `t3_thread_wait` / `t3_thread_read` to run and follow work.
 - Pass `projectId` or `threadId` explicitly (or `allProjects: true` on `t3_thread_list`).

@@ -1,104 +1,32 @@
 # Agent Desk
 
-Agent Desk is an unofficial, MIT-licensed fork of T3 Code for running coding agents on your own
-machine. It is unaffiliated with T3 Tools. The fork keeps project history, local diagnostics,
-terminals, Git, and direct LAN or Tailscale access.
+Agent Desk is an unofficial, MIT-licensed fork of [T3 Code](https://github.com/pingdotgg/t3code) for
+running coding agents on your own machine. It is unaffiliated with T3 Tools.
 
-[Windows preview releases](https://github.com/ririo08/agent-desk/releases) ·
-[Privacy and diagnostics](./docs/user/telemetry.md) ·
-[Build workflow](./docs/operations/03_release.md#agent-desk-fork)
-
-The documentation below describes the upstream project.
-
-## What you get
-
-- **Your subscriptions.** T3 Code does not resell tokens. It drives the agents you are already signed in to.
-- **Every agent in one place.** Change models in the middle of a thread. Let Claude hand a task to Codex.
-- **Desktop, web, and phone.** One server, and every client shows the same threads. There are apps for iOS and Android.
-- **Remote ready.** Run agents on any machine. Connect over your local network, Tailscale, or [T3 Connect](./docs/user/remote-access.md).
-- **Git built in.** Each thread can work in its own worktree. Review the diff, then commit, push, and open a pull request with one button.
-- **Fast.** Performance is a feature here. We measure it, and we treat a dropped frame as a bug.
-- **Open.** Source code is MIT licensed. If you don't like something, fork it under your own branding (see [Trademarks and forks](#trademarks-and-forks)).
+Use one interface for local coding agents, project history, terminals, diffs, and Git worktrees.
+Connect from another device with a direct LAN or Tailscale pairing link.
 
 ## Install
 
-### Desktop app
+- **Windows x64** — Get the setup EXE from [Agent Desk releases](https://github.com/ririo08/agent-desk/releases).
+  The preview is unsigned and includes a backend for WSL.
+- **Linux x64** — Get the AppImage from a successful [desktop build](https://github.com/ririo08/agent-desk/actions/workflows/build-desktop.yml).
+- Open Agent Desk, set up a local provider such as Codex or Claude, and open a project.
 
-[Download T3 Code](https://t3.codes/download) for macOS, Windows, or Linux. You can also use a package manager:
-
-| Platform       | Command                                                              |
-| -------------- | -------------------------------------------------------------------- |
-| macOS          | `brew install --cask t3-code`                                        |
-| Windows        | `winget install T3Tools.T3Code` or `scoop install extras/t3code`     |
-| Arch Linux     | `yay -S t3code-bin`                                                  |
-| Nix            | `nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code`         |
-| Debian, Ubuntu | `.deb` from [Releases](https://github.com/pingdotgg/t3code/releases) |
-
-### Command line
-
-This installs the `t3` command. Run `t3` to start the server and open the web app.
-
-```bash
-curl -fsSL https://t3.codes/install.sh | sh
-```
-
-On Windows, in PowerShell:
-
-```powershell
-irm https://t3.codes/install.ps1 | iex
-```
-
-To try it once without an install, run `npx t3@latest`.
-
-### Phone
-
-Get the app from the [App Store](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824) or [Google Play](https://play.google.com/store/apps/details?id=com.t3tools.t3code). Then follow [remote access](./docs/user/remote-access.md) to connect it to your computer.
-
-### Sign in to an agent
-
-T3 Code needs one agent that is installed and signed in. For example, install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`, or install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`.
-
-[Provider setup](./docs/user/install.md#providers) has the steps for each agent. [Install T3 Code](./docs/user/install.md) covers nightly builds, AppImage, WSL, and NixOS.
-
-## "Wait, what are you selling me?"
-
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
-
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork the source code and build the tool that you want, under your own name and branding.
+See [Install Agent Desk](./docs/user/install.md) for setup instructions.
 
 ## Documentation
 
-- [Install and first run](./docs/user/install.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Source control](./docs/user/source-control.md)
-- [Connect outside agents over MCP](./docs/user/outside-agents.md)
-- [FAQ](./docs/user/faq.md)
+- [User guide](./docs/user/README.md) · [Remote access](./docs/user/remote-access.md)
+- [Privacy and diagnostics](./docs/user/telemetry.md) · [Manual updates](./docs/user/updating.md)
 
-[All docs](./docs/README.md) has the full list.
+## Working on the fork
 
-## Contributing
+- Report Agent Desk bugs in [this repository's issues](https://github.com/ririo08/agent-desk/issues).
+- See [development and local builds](./docs/operations/00_development.md) and the
+  [Agent Desk release workflow](./docs/operations/03_release.md#agent-desk-fork).
 
-We have limited review capacity. Small, focused fixes are the most likely to be merged. Features need an approved discussion first.
+## License and attribution
 
-- Read [CONTRIBUTING.md](./CONTRIBUTING.md) before you report a bug or open a pull request.
-- Put feature requests in [Ideas](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
-- Build from source with the [development runbook](./docs/operations/00_development.md#first-checkout). The [architecture overview](./docs/internals/01_architecture.md) explains how it works.
-- Get help in [Discord](https://discord.gg/jn4EGJjrvv).
-
-## License
-
-The source code in this repository is licensed under the [MIT License](./LICENSE).
-
-## Trademarks and forks
-
-The MIT license applies **only to the source code**. It does not grant any rights to T3 Tools, Inc.'s trademarks, branding, or trade dress, including the **T3 Code** name, wordmark, logos, and application icons.
-
-If you fork, redistribute, or build on T3 Code's source code:
-
-- **Use your own branding.** Replace the T3 Code name, wordmark, logos, and application icons in any public fork, redistributed build, website, package, or app store listing.
-- **Be explicitly clear that your project is unofficial.** Do not use the T3 Code name, wordmark, logo, or branding in your own projects without making it unmistakably clear that your project is unofficial and not affiliated with or endorsed by T3 Tools, Inc.
-
-Using our name, wordmark, logo, or branding in a way that suggests official status or affiliation is trademark infringement and unlawful. **Any project indicating or implying that it is an official version of T3 Code when it is not will be pursued to the full extent of the law.**
-
-See [TRADEMARK.md](./TRADEMARK.md) for the full trademark and branding policy.
+The source code is available under the [MIT License](./LICENSE). See the upstream
+[trademark policy](./TRADEMARK.md) for its branding and official distribution channels.

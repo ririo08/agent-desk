@@ -12,7 +12,7 @@ curl -fsSL https://vite.plus | bash
 On Windows, clone with long paths enabled so `.repos/` checks out cleanly:
 
 ```powershell
-git clone -c core.longpaths=true https://github.com/pingdotgg/t3code.git
+git clone -c core.longpaths=true https://github.com/ririo08/agent-desk.git
 ```
 
 From the repository root:

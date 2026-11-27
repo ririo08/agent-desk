@@ -1,3 +1,5 @@
+export const DEFAULT_APP_NAME = "Agent Desk";
+
 const NIGHTLY_SERVER_VERSION_PATTERN = /^[^-+]+-(?:nightly|preview)\.\d{8}\.\d+$/;
 
 export function formatAppDisplayName(input: {
