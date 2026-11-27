@@ -62,4 +62,7 @@ jobs:
           if [[ -z "$BASE_SHA" ]]; then
             BASE_SHA=$(git rev-parse HEAD^)
           fi
+          # SQLite test fixtures perform many synchronous writes on large sync PRs.
+          TMPDIR=$(mktemp -d /dev/shm/agent-desk-pr-tests.XXXXXX)
+          export TMPDIR
           vp run check:changed --typecheck-and-test "$BASE_SHA"
