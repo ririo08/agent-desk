@@ -983,12 +983,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     desktopOnly: true,
   },
   {
-    id: "mobile-app",
-    title: msg("Mobile app"),
-    to: "/settings/about",
-    searchTerms: [msg("phone tablet iPhone iPad iOS Android App Store Google Play QR")],
-  },
-  {
     id: "welcome-page",
     title: msg("Welcome page"),
     to: "/settings/about",
@@ -997,7 +991,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "privacy-policy",
-    title: msg("Privacy policy"),
+    title: msg("Privacy and diagnostics"),
     to: "/settings/about",
     searchTerms: [msg("telemetry analytics usage data tracking legal opt out")],
   },
@@ -1214,7 +1208,7 @@ export const SETTINGS_SEARCH_ITEMS = [
   },
   {
     id: "pull-request-links-open-in-app",
-    title: msg("Open pull requests in T3 Code"),
+    title: msg("Open pull requests in Agent Desk"),
     to: "/settings/diffs",
     searchTerms: [
       `pr commit links ${SOURCE_CONTROL_HOST_LABELS} browser external click default pull request view panel`,

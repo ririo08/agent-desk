@@ -52,8 +52,8 @@ The issue is on the client device's network:
 - **T3 Connect disabled on host**: Turn on **Settings → Sharing & access → T3 Connect** or run `t3 connect`.
 - **Link not yet applied**: Restart T3 Code on the host (`t3 service restart` or restart desktop app).
 - **Expired session**: Sign out of T3 Connect and sign back in.
-- **Waiting for device approval**: Approve the displayed code from an existing device or run `t3 auth connect-device approve <code>` on the host ([Approve new devices](./remote-access.md#approve-new-devices)).
-- **Machine limit reached**: Deregister an unused host or [link a paid T3 Chat account](./remote-access.md#more-machines-with-t3-chat), then restart the host.
+- **Waiting for device approval**: Approve the displayed code from an existing device or run `t3 auth connect-device approve <code>` on the host ([Approve new devices](https://github.com/pingdotgg/t3code/blob/v0.1.13/docs/user/remote-access.md#approve-new-devices)).
+- **Machine limit reached**: Deregister an unused host or [link a paid T3 Chat account](https://github.com/pingdotgg/t3code/blob/v0.1.13/docs/user/remote-access.md#more-machines-with-t3-chat), then restart the host.
 
 ## The clock is off
 

@@ -11,10 +11,10 @@ describe("MCP app links", () => {
       return new URL(mcpHandoffAction(app, MCP_URL)!.link);
     };
     const poke = opened("poke");
-    expect(poke.searchParams.get("name")).toBe("T3 Code");
+    expect(poke.searchParams.get("name")).toBe("Agent Desk");
     expect(poke.searchParams.get("url")).toBe(MCP_URL);
     const claude = opened("claude");
-    expect(claude.searchParams.get("connectorName")).toBe("T3 Code");
+    expect(claude.searchParams.get("connectorName")).toBe("Agent Desk");
     expect(claude.searchParams.get("connectorUrl")).toBe(MCP_URL);
   });
 

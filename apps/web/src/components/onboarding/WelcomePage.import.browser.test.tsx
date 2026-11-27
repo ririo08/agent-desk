@@ -449,7 +449,16 @@ it("finishes setup without landing when the imported project never reaches the c
 it("waits for a ready agent to start, and Start without an agent still finishes setup", async () => {
   using _now = setup();
   appAtomRegistry.set(state.providers as Atom.Writable<ReadonlyArray<ServerProvider>>, []);
-  await using _screen = await mountWelcome();
+  await using screen = await mountWelcome();
+  await expect
+    .element(screen.getByRole("heading", { name: "Welcome to Agent Desk" }))
+    .toBeVisible();
+  await expect
+    .element(screen.getByRole("link", { name: "privacy and diagnostics" }))
+    .toHaveAttribute(
+      "href",
+      "https://github.com/ririo08/agent-desk/blob/main/docs/user/telemetry.md",
+    );
   expect(button("Import 2 projects and start").disabled).toBe(true);
 
   await click("Start without an agent");
